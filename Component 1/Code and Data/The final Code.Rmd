@@ -1,0 +1,641 @@
+---
+title: "VISU PROJECT"
+author: "Praveen Kumar"
+date: "2022-11-01"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,comment = NA)
+```
+
+## Introduction
+
+Here we have taken this data of around 30,000 houses across india from kaggle.
+Some of the important attributes of this data are : BHK No. , Longitude & Latitude, Price , Area in sq ft. , Area per 1 lakh Rs., etc.
+
+After some cleaning of the data, when the data was plotted on a sctterplot as longitude and lattitude, it almost created the map of india, showing that the data was really from most part of india and not just a few cluster of only north or only south india.
+
+
+However, as we will see, a lot of the data is from cities.
+so this data cannot really be used to conclude facts about whole india but mostly urban part.
+
+Since it is mostly a cluster of Important cities, we'll study this data of some important cities as well:
+
+
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+library(tidyverse)
+r = getOption("repos")
+r["CRAN"] = "http://cran.us.r-project.org"
+options(repos = r)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE, results='hide'}
+library(googlesheets4)
+library(lubridate)
+install.packages("openintro")
+library(openintro)
+install.packages("palmerpenguins")
+library(palmerpenguins)
+library(maps)
+library(ggmap)
+install.packages("ggthemes")
+library(ggthemes)
+install.packages("ggpubr")
+library(ggpubr)
+```
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+library(ggplot2)
+library(readr)
+rishi2 <- read_csv("rishi2.csv")
+s_p <- read_csv("s_p.csv")
+s_n <- read_csv("s_n.csv")
+s_m <- read_csv("s_m.csv")
+s_k <- read_csv("s_k.csv")
+s_j <- read_csv("s_j.csv")
+s_g <- read_csv("s_g.csv")
+s_d <- read_csv("s_d.csv")
+s_c <- read_csv("s_c.csv")
+s_b <- read_csv("s_b.csv")
+rishi2_srm <- read_csv("rishi2_srm.csv")
+rishi2_rrm <- read_csv("rishi2_rrm.csv")
+rishi2_prm <- read_csv("rishi2_prm.csv")
+CITY <- read_csv("CITY.csv")
+CITY_srm <- read_csv("CITY_srm.csv")
+CITY_prm <- read_csv("CITY_prm.csv")
+
+###  I. whole india description:
+
+
+####1. SCATTERPLOT OF Lat vs Lon (only for ALLINDIA)
+
+###important code ********************
+ 
+par(mfrow=c(1,1))
+
+
+q1=ggplot()+
+  geom_point(rishi2,mapping=aes(x=LATITUDE, y=LONGITUDE),color="blue")
+
+q1=q1+scale_x_continuous(limit=c(68,95))+scale_y_continuous(limit=c(6,35))
+
+
+
+
+india_map = get_stamenmap(bbox = c(left = 58.711, bottom=5.572, right = 98, top=36.457),
+                          maptype="toner-lite",
+                          zoom=5)
+
+
+q2=ggplot()+geom_bar(data=rishi2,aes(x=factor(BHK_NO.),fill=factor(BHK_NO.)))+labs(x="Number of BHKs")+theme(plot.caption = element_text(hjust=0.5,size=16, color="dark blue"))+guides(fill 
+                                                                                                    = guide_legend(title = "BHK No.s"))
+
+
+ggarrange(q1+scale_x_continuous(limit=c(68,95))+scale_y_continuous(limit=c(6,35)), q2, 
+          labels = c("A", "B"),
+          ncol = 2, nrow = 1)
+```
+
+> **Data Description:** LEFT: Just throwing all the data on a scatterplot with xaxis as latitude and yaxis as longitutde, traces indian peninsula, depicting that the data was from all across india and not just north or south part of india.
+Right: It shows count of BHK No. in the data, as we can see, most of the houses are 2 or 3 BHKs, and 5-6 BHKs are very less compratively.
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+q=ggmap(india_map)+
+  geom_point(rishi2,mapping=aes(x=LATITUDE, y=LONGITUDE, size=PRICE_IN_LACS, 
+                                color=factor(BHK_NO.)))+labs(size="Price", color="BHK no")                                  
+
+q+scale_size_area(max_size=2) 
+
+
+```
+
+> **Figure 1**: **Data plotted on Map** Here, we've tried to describe the data on the full Indian map, each point is a house, the bigger the size the more costly it is. The colout is for different BHK No.
+Since the data is quite large and clustered, lot of points just overlap onto each other which makes it hard to conclude facts about the data from here. Hence, we'll see most of the clusters(which are cities) separately.
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+
+########
+
+#####frequncy of BHKs
+
+
+
+
+#***********
+##### II. ALL INDIA ANALYSIS
+
+
+
+q1=ggplot(rishi2_prm,aes(x=factor(rishi2_prm$BHK_NO.),y=PRICE_IN_LACS, fill=factor(rishi2_prm$BHK_NO.)))+geom_boxplot(show.legend = FALSE)+labs(x="Number 
+of BHKs",y="Price")
+
+
+q2=ggplot(rishi2_rrm,aes(x=factor(rishi2_rrm$BHK_NO.),y=RATIO,fill=factor(rishi2_rrm$BHK_NO.)))+geom_boxplot(show.legend = FALSE)+labs(x="Number 
+of BHKs",y="Area per 1 Lakh rs")
+
+
+q3=ggplot(rishi2_srm,aes(x=factor(BHK_NO.),y=SQUARE_FT,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area(in sq ft.")
+
+
+ggarrange(q1,q2,q3 ,labels = c("A", "B", "C"), ncol = 3, nrow = 1) 
+
+
+## CITY_COMBINED DATA DESC
+
+
+
+
+```
+ **A** : Quite an obvious trend, with BHK No. Price Increases. Same for **C**.  **B** : Area is the maximum at 2 BHK, then it rapidly decreases for each Lakh rs spent.
+ 
+ 
+ 
+
+
+## City data combined:
+
+> Here only those data is filtered which are in some city. So as to make conclusion about cities of india, and also to compare them.
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+
+
+
+#freq bar grpah of bhk
+
+q1=ggplot()+geom_bar(data=CITY,aes(x=factor(BHK_NO.),fill=factor(BHK_NO.)),show.legend = F)+labs(x="BHK No")
+
+
+##CITY_COMBINED DATA ANALYSIS
+
+#Price
+
+q2=ggplot(CITY_prm,aes(x=factor(ADDRESS),y=PRICE_IN_LACS,fill=factor(ADDRESS)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Price")+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+#ratio
+q3=ggplot(CITY,aes(x=factor(ADDRESS),y=RATIO,fill=factor(ADDRESS)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area per 1 Lakh rs")+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+#sqare_ft
+
+q4=ggplot(CITY,aes(x=factor(ADDRESS),y=SQUARE_FT,fill=factor(ADDRESS)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area(in sq ft.)")+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggarrange(q1, q2,q3,q4 ,
+          labels = c("A", "B","C","D"),
+          ncol = 2, nrow = 2)
+
+
+#CITYWISE DATA DESC
+
+###MAP PLOT
+
+
+
+
+
+
+
+
+
+
+
+```
+ **A** : Most houses which are for sale in Cities are 2BHK followed by 3, 5-6BHK are very rare.
+ **B** : Price for house is highest in Mumbai and lowest in Jaipur.
+ **C** : Area per 1 lakh spend is very high in Jaipur, compared to Mumbai which is the Lowest.
+ **D** : How spacious a house is doesnt seem to depend on its location.
+
+
+## GUWAHATI:
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+
+
+
+
+##Guwahati : 
+
+
+
+
+
+
+india_map = get_stamenmap(bbox = c(left = 91.38, bottom=25.94, right = 92.128, top=26.4),
+                          maptype="toner-lite",
+                          zoom=11)
+
+q=ggmap(india_map)+
+  geom_point(rishi2,mapping=aes(x=LATITUDE, y=LONGITUDE, size=PRICE_IN_LACS, color=factor(BHK_NO.)))
+
+q+labs(size="Price", color="BHK no")
+
+
+```
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+
+
+
+#freq of bhk 
+q1=ggplot()+geom_bar(data=s_j,aes(x=factor(BHK_NO.),fill=factor(BHK_NO.)),show.legend = F)+labs(x="BHK No")
+
+
+
+#Guhati ANALYSIS
+
+
+q2=ggplot(s_g,aes(x=factor(BHK_NO.),y=PRICE_IN_LACS,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Price")
+
+
+
+q3=ggplot(s_j,aes(x=factor(BHK_NO.),y=RATIO,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area per 1 Lakh rs")
+
+
+
+
+q4=ggplot(s_j,aes(x=factor(BHK_NO.),y=SQUARE_FT,fill=factor(BHK_NO.)))+
+  geom_boxplot(show.legend = F)+
+  labs(x="Number 
+of BHKs",y="Area(in sq ft.)")
+
+ggarrange(q1, q2, q3,q4,
+          labels = c("A", "B","C","D"),
+          ncol = 2, nrow = 2)
+
+
+
+```
+**A** : 2-3BHK are the ones the most for Sale.
+**B** : Price unsurprisingly increases the more bedrooms you have. Same for **D**.
+**C** : Area per lakh rs decreases gradually with BHK No.
+
+
+## New Delhi :
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+
+##New Delhi:
+
+
+
+
+
+india_map = get_stamenmap(bbox = c(left = 76.9235, bottom=28.2856, right = 77.6720, top=28.7472),
+                          maptype="toner-lite",
+                          zoom=11)
+
+q=ggmap(india_map)+
+  geom_point(rishi2,mapping=aes(x=LATITUDE, y=LONGITUDE, size=PRICE_IN_LACS, color=factor(BHK_NO.)),position = "stack")
+
+q+labs(size="Price", color="BHK no")
+#freq of bhk
+
+q1=ggplot()+geom_bar(data=s_d,aes(x=factor(BHK_NO.),fill=factor(BHK_NO.)),show.legend = F)+labs(x="BHK No")
+
+#delhi ANALYSIS
+
+
+q2=ggplot(s_d,aes(x=factor(BHK_NO.),y=PRICE_IN_LACS,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Price")
+
+
+
+q3=ggplot(s_d,aes(x=factor(BHK_NO.),y=RATIO,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area per 1 Lakh rs")
+
+
+
+q4=ggplot(s_d,aes(x=factor(BHK_NO.),y=SQUARE_FT,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+
+labs(x="Number 
+of BHKs",y="Area(in sq ft.)")
+ggarrange(q1, q2, q3,q4,
+          labels = c("A", "B","C","D"),
+          ncol = 2, nrow = 2)
+
+```
+**A** : 2-3BHK are the ones the most for Sale.
+**B** : Price unsurprisingly increases the more bedrooms you have. Same for **D**.
+**C** : Area per lakh rs decreases gradually with BHK No.
+
+
+
+## Bangalore :
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+
+#Bangalore
+india_map = get_stamenmap(bbox = c(left = 77.4286, bottom=12.8640, right = 77.8028, top=13.1199),
+                          maptype="toner-lite",
+                          zoom=12)
+
+q=ggmap(india_map)+
+  geom_point(rishi2,mapping=aes(x=LATITUDE, y=LONGITUDE, size=PRICE_IN_LACS, color=factor(BHK_NO.)),position="stack")
+
+q+labs(size="Price", color="BHK no")
+
+#freq
+
+q1=ggplot()+geom_bar(data=s_b,aes(x=factor(BHK_NO.),fill=factor(BHK_NO.)),show.legend = F)+labs(x="BHK No")
+##### II. BANGBANG ANALYSIS
+
+
+q2=ggplot(s_b,aes(x=factor(BHK_NO.),y=PRICE_IN_LACS,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Price")
+
+
+
+q3=ggplot(s_b,aes(x=factor(BHK_NO.),y=RATIO,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area per 1 Lakh rs")
+
+
+
+q4=ggplot(s_b,aes(x=factor(BHK_NO.),y=SQUARE_FT,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area(in sq ft.)")
+
+ggarrange(q1, q2, q3,q4,
+          labels = c("A", "B","C","D"),
+          ncol = 2, nrow = 2)
+
+```
+**A** : 2-3BHK are the ones the most for Sale.
+**B** : Price unsurprisingly increases the more bedrooms you have. Same for **D**.
+**C** : Area per lakh rs increases till 2BHK then decreases gradually with BHK No.
+
+
+
+## Mumbai :
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+
+# Mumbai
+india_map = get_stamenmap(bbox = c(left = 72.5050, bottom=18.8335, right = 73.2534, top=19.3299),
+                          maptype="toner-lite",
+                          zoom=11)
+
+q=ggmap(india_map)+
+  geom_point(rishi2,mapping=aes(x=LATITUDE, y=LONGITUDE, size=PRICE_IN_LACS, color=factor(BHK_NO.)))+scale_size_area(max_size=3)
+
+q+labs(size="Price", color="BHK no")
+
+#freq
+q1=ggplot()+geom_bar(data=s_m,aes(x=factor(BHK_NO.),fill=factor(BHK_NO.)),show.legend = F)+labs(x="BHK No")
+##### II. ALL INDIA ANALYSIS
+
+
+q2=ggplot(s_m,aes(x=factor(BHK_NO.),y=PRICE_IN_LACS,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Price")
+
+
+
+q3=ggplot(s_m,aes(x=factor(BHK_NO.),y=RATIO,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area per 1 Lakh rs")
+
+
+q4=ggplot(s_m,aes(x=factor(BHK_NO.),y=SQUARE_FT,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area(in sq ft.)")
+
+ggarrange(q1, q2, q3,q4,
+          labels = c("A", "B","C","D"),
+          ncol = 2, nrow = 2)
+
+
+```
+**A** : 2-3BHK are the ones the most for Sale.
+**B** : Price unsurprisingly increases the more bedrooms you have. Same for **D**.
+**C** : Area per lakh rs decreases Sharply with BHK No.
+
+
+
+## Pune :
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+
+#Pune
+
+india_map = get_stamenmap(bbox = c(left = 73.6379, bottom=18.4008, right = 74.1323, top=18.6498),
+                          maptype="toner-lite",
+                          zoom=12)
+
+q=ggmap(india_map)+
+  geom_point(rishi2,mapping=aes(x=LATITUDE, y=LONGITUDE, size=PRICE_IN_LACS, color=factor(BHK_NO.)))+scale_size_area(max_size = 3)
+
+q+labs(size="Price", color="BHK no")
+
+#freq
+
+q1=ggplot()+geom_bar(data=s_p,aes(x=factor(BHK_NO.),fill=factor(BHK_NO.)),show.legend = F)+labs(x="BHK No")
+##### II. ALL INDIA ANALYSIS
+
+
+q2=ggplot(s_p,aes(x=factor(BHK_NO.),y=PRICE_IN_LACS,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Price")
+
+
+q3=ggplot(s_p,aes(x=factor(BHK_NO.),y=RATIO,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area per 1 Lakh rs")
+
+
+q4=ggplot(s_p,aes(x=factor(BHK_NO.),y=SQUARE_FT,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area(in sq ft.)")
+
+ggarrange(q1, q2, q3,q4,
+          labels = c("A", "B","C","D"),
+          ncol = 2, nrow = 2)
+
+```
+**A** : 2-3BHK are the ones the most for Sale.
+**B** : Price unsurprisingly increases the more bedrooms you have. Same for **D**.
+**C** : Area per lakh rs decreases gradually with BHK No.
+
+
+
+## Chennai :
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+
+
+#Chennai
+
+india_map = get_stamenmap(bbox = c(left = 79.8500, bottom=12.6712, right = 80.8388, top=13.1831),
+                          maptype="toner-lite",
+                          zoom=11)
+
+q=ggmap(india_map)+
+  geom_point(rishi2,mapping=aes(x=LATITUDE, y=LONGITUDE, size=PRICE_IN_LACS, color=factor(BHK_NO.)))+scale_size_area(max_size = 3)
+
+q+labs(size="Price", color="BHK no")
+#freq
+q1=ggplot()+geom_bar(data=s_c,aes(x=factor(BHK_NO.),fill=factor(BHK_NO.)),show.legend = F)+labs(x="BHK No")
+##### II. ALL INDIA ANALYSIS
+
+
+q2=ggplot(s_c,aes(x=factor(BHK_NO.),y=PRICE_IN_LACS,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Price")
+
+
+q3=ggplot(s_c,aes(x=factor(BHK_NO.),y=RATIO,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area per 1 Lakh rs")
+
+
+
+q4=ggplot(s_c,aes(x=factor(BHK_NO.),y=SQUARE_FT,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area(in sq ft.)")
+
+ggarrange(q1, q2, q3,q4,
+          labels = c("A", "B","C","D"),
+          ncol = 2, nrow = 2)
+
+```
+**A** : 2-3BHK are the ones the most for Sale.
+**B** : Price unsurprisingly increases the more bedrooms you have, Except after 5BHK,6BHKs cheaper  . Same for **D**.
+**C** : Area per lakh rs its almost flat.
+
+
+## Nagpur :
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+#Nagpur 
+
+india_map = get_stamenmap(bbox = c(left = 78.9000, bottom=21.0195, right = 79.3944, top=21.2644),
+                          maptype="toner-lite",
+                          zoom=11)
+
+q=ggmap(india_map)+
+  geom_point(rishi2,mapping=aes(x=LATITUDE, y=LONGITUDE, size=PRICE_IN_LACS, color=factor(BHK_NO.)))
+
+q+labs(size="Price", color="BHK no")
+
+#freq
+q1=ggplot()+geom_bar(data=s_n,aes(x=factor(BHK_NO.),fill=factor(BHK_NO.)),show.legend = F)+labs(x="BHK No")
+##### II. ALL INDIA ANALYSIS
+
+
+q2=ggplot(s_n,aes(x=factor(BHK_NO.),y=PRICE_IN_LACS,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Price")
+
+
+
+q3=ggplot(s_n,aes(x=factor(BHK_NO.),y=RATIO,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area per 1 Lakh rs")
+
+
+
+q4=ggplot(s_n,aes(x=factor(BHK_NO.),y=SQUARE_FT,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area(in sq ft.)")
+
+ggarrange(q1, q2, q3,q4,
+          labels = c("A", "B","C","D"),
+          ncol = 2, nrow = 2)
+
+
+```
+**A** : 2-3BHK are the ones the most for Sale.
+**B** : Price unsurprisingly increases the more bedrooms you have. Same for **D**.
+**C** : Area per lakh rs increases till 2BHK then decreases gradually with BHK No.
+
+
+
+## Kolkata :
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+
+
+#Kolkata
+india_map = get_stamenmap(bbox = c(left = 88.1025, bottom=22.4202, right = 88.5968, top=22.6628),
+                          maptype="toner-lite",
+                          zoom=11)
+
+q=ggmap(india_map)+
+  geom_point(rishi2,mapping=aes(x=LATITUDE, y=LONGITUDE, size=PRICE_IN_LACS, color=factor(BHK_NO.)))+scale_size_area(max_size = 3)
+
+q+labs(size="Price", color="BHK no")
+
+#freq 
+q1=ggplot()+geom_bar(data=s_k,aes(x=factor(BHK_NO.),fill=factor(BHK_NO.)),show.legend = F)+labs(x="BHK No")
+##### II. ALL INDIA ANALYSIS
+
+
+q2=ggplot(s_k,aes(x=factor(BHK_NO.),y=PRICE_IN_LACS,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Price")
+
+
+
+q3=ggplot(s_k,aes(x=factor(BHK_NO.),y=RATIO,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area per 1 Lakh rs")
+
+
+
+q4=ggplot(s_k,aes(x=factor(BHK_NO.),y=SQUARE_FT,fill=factor(BHK_NO.)))+geom_boxplot(show.legend = F)+labs(x="Number 
+of BHKs",y="Area(in sq ft.)")
+ggarrange(q1, q2, q3,q4,
+          labels = c("A", "B","C","D"),
+          ncol = 2, nrow = 2)
+
+```
+
+**A** : 2-3BHK are the ones the most for Sale.
+**B** : Price unsurprisingly increases the more bedrooms you have. Same for **D**.
+**C** : Area per lakh rs stable till 2BHK then decreases gradually with BHK No.
+
+
+
+
+## Conclusions
+
+The houses for sale were mostly 2 or 3 BHKs, however different cities had different stories.
+For Guwahati and Jaipur, the houses for sale were mostly 3 BHKS, for Mumbai and Pune most of the houses were 1 BHKs, and for rest cities 2 and 3 BHKs were almost in same number.
+
+Looking at the location of the houses in the map, they too tell a story.
+Houses(for sale) in for example, New Delhi, are in 3 major clusters.
+It is seen in most of the maps that, the closer the house to the water source(specially in case of mumbai and chennai), the costlier it gets. This cost also depends on how close the center of the city is.
+
+While looking at different cities and comparing them, it was clear that Mumbai followed by Bangalore are expensive places to buy house from, and Jaipur followed by Nagpur has the cheapest house prices.
+The area of an avarage house was almost the same for every city.
+
+The area per Lakh rs is an important factor one has to consider while buying a house.
+This number is Very less in Mumbai followed by Pune, and it is huge in Jaipur followed by Nagpur and Guwahati.
+
+
+
+
+
+## Links:
+
+
+**Link to the kaggle website with data:** <https://www.kaggle.com/anmolkumar/house-price-prediction-challenge>
+
+**Link to Github with this project:** <https://github.com/TheLiteRunner/VISU-PROJ-REPORT>
+
+
+**Link to shiny dashboard :** <https://theliterunner.shinyapps.io/latest1/>
+
+**Youtube Link where I've explained the Shiny Dashboard :** <https://youtu.be/UqIHhBl3pNY>
+
