@@ -1,6 +1,6 @@
 Hi
-Component 1 contains the report.pdf and its rmd file along with the datasets i used. It also contains link to shiny dashboard io website, link to kaggle website i used the data from,
-and a link to youtube where ive explained the dashboard.
+Component 1 contains the report.pdf and its rmd file along with the datasets i used. It also contains link to shiny dashboard io website, link to kaggle website i downloaded the data from,
+and a link to youtube where i've explained the dashboard.
 
 Component 2 contains the code and data used for making the shiny app.
 
